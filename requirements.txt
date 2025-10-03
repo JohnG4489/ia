@@ -1,0 +1,24 @@
+# Core dependencies for AI photo and video remastering
+opencv-python==4.8.1.78
+Pillow==10.0.1
+numpy==1.24.3
+torch==2.0.1
+torchvision==0.15.2
+scipy==1.11.2
+
+# Web interface
+flask==2.3.3
+werkzeug==2.3.7
+
+# CLI interface
+click==8.1.7
+tqdm==4.66.1
+
+# Image processing utilities
+scikit-image==0.21.0
+imageio==2.31.3
+imageio-ffmpeg==0.4.9
+
+# Optional: Pre-trained models for enhancement
+# Real-ESRGAN for super-resolution
+realesrgan==0.3.0
