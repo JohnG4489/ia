@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}All Jobs - AI Remastering{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow border-0">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">
+                    <i class="fas fa-tasks me-2"></i>
+                    Processing Jobs
+                </h3>
+                <a href="{{ url_for('index') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>
+                    New Job
+                </a>
+            </div>
+            
+            <div class="card-body">
+                {% if jobs %}
+                <div class="row">
+                    {% for job in jobs %}
+                    <div class="col-lg-6 col-xl-4 mb-4">
+                        <div class="card job-card {{ job.get('status', '') }}">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-{{ 'image' if job.get('file_type') == 'image' else 'video' }} me-2"></i>
+                                    {{ job.get('filename', 'Unknown File')[:30] }}
+                                    {% if job.get('filename', '') | length > 30 %}...{% endif %}
+                                </h6>
+                                
+                                <div class="job-info mb-3">
+                                    <small class="text-muted d-block">
+                                        <i class="fas fa-tag me-1"></i>
+                                        Type: {{ job.get('file_type', 'Unknown').title() }}
+                                    </small>
+                                    <small class="text-muted d-block">
+                                        <i class="fas fa-brain me-1"></i>
+                                        Model: {{ job.get('model', 'Unknown') }}
+                                    </small>
+                                    <small class="text-muted d-block">
+                                        <i class="fas fa-expand-alt me-1"></i>
+                                        Scale: {{ job.get('scale_factor', 'Unknown') }}x
+                                    </small>
+                                </div>
+                                
+                                <div class="status-badge mb-2">
+                                    {% if job.get('status') == 'queued' %}
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-clock me-1"></i>Queued
+                                        </span>
+                                    {% elif job.get('status') == 'processing' %}
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-spinner fa-spin me-1"></i>Processing
+                                        </span>
+                                    {% elif job.get('status') == 'completed' %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle me-1"></i>Completed
+                                        </span>
+                                    {% elif job.get('status') == 'error' %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Error
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="job-actions">
+                                    <a href="{{ url_for('job_status', job_id=job.get('id')) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye me-1"></i>
+                                        View Details
+                                    </a>
+                                    
+                                    {% if job.get('status') == 'completed' %}
+                                    <a href="{{ url_for('download_file', job_id=job.get('id')) }}" 
+                                       class="btn btn-sm btn-success">
+                                        <i class="fas fa-download me-1"></i>
+                                        Download
+                                    </a>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="job-time mt-2">
+                                    <small class="text-muted">
+                                        {% if job.get('started_at') %}
+                                            <i class="fas fa-calendar me-1"></i>
+                                            Started: {{ job.get('started_at').strftime('%Y-%m-%d %H:%M') if job.get('started_at') else 'Unknown' }}
+                                        {% elif job.get('completed_at') %}
+                                            <i class="fas fa-calendar-check me-1"></i>
+                                            Completed: {{ job.get('completed_at').strftime('%Y-%m-%d %H:%M') if job.get('completed_at') else 'Unknown' }}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No jobs yet</h4>
+                    <p class="text-muted">Start by uploading your first photo or video for enhancement.</p>
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>
+                        Upload Your First File
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Auto-refresh jobs list every 5 seconds if there are active jobs
+    function refreshJobsList() {
+        const activeJobs = document.querySelectorAll('.badge:contains("Processing"), .badge:contains("Queued")');
+        if (activeJobs.length > 0) {
+            setTimeout(() => {
+                window.location.reload();
+            }, 5000);
+        }
+    }
+    
+    // Check for active jobs when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        const processingJobs = document.querySelectorAll('.job-card.processing, .job-card .badge.bg-info, .badge.bg-warning');
+        if (processingJobs.length > 0) {
+            setTimeout(() => {
+                window.location.reload();
+            }, 5000);
+        }
+    });
+</script>
+{% endblock %}

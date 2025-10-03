@@ -7,10 +7,20 @@ Main entry point for the application.
 import click
 import sys
 from pathlib import Path
-from src.image_enhancer import ImageEnhancer
-from src.video_enhancer import VideoEnhancer
-from src.web_interface import create_app
 import config
+
+# Import enhancer classes only when needed to avoid import errors
+def get_image_enhancer():
+    from src.image_enhancer import ImageEnhancer
+    return ImageEnhancer()
+
+def get_video_enhancer():
+    from src.video_enhancer import VideoEnhancer
+    return VideoEnhancer()
+
+def get_web_app():
+    from src.web_interface import create_app
+    return create_app()
 
 @click.group()
 def cli():
@@ -33,7 +43,7 @@ def enhance_image(input_path, output, model, scale):
     if output is None:
         output = config.OUTPUT_DIR / f"{input_file.stem}_enhanced{input_file.suffix}"
     
-    enhancer = ImageEnhancer()
+    enhancer = get_image_enhancer()
     
     try:
         click.echo(f"Enhancing {input_path} with {model} model...")
@@ -58,7 +68,7 @@ def enhance_video(input_path, output, model):
     if output is None:
         output = config.OUTPUT_DIR / f"{input_file.stem}_enhanced{input_file.suffix}"
     
-    enhancer = VideoEnhancer()
+    enhancer = get_video_enhancer()
     
     try:
         click.echo(f"Enhancing video {input_path} with {model} model...")
@@ -96,8 +106,8 @@ def batch_enhance(input_dir, output, model, scale):
     
     click.echo(f"Found {len(media_files)} media files to process...")
     
-    image_enhancer = ImageEnhancer()
-    video_enhancer = VideoEnhancer()
+    image_enhancer = get_image_enhancer()
+    video_enhancer = get_video_enhancer()
     
     for file_path in media_files:
         try:
@@ -120,7 +130,7 @@ def batch_enhance(input_dir, output, model, scale):
 @click.option('--debug', default=config.WEB_DEBUG, help='Debug mode')
 def web(host, port, debug):
     """Start the web interface."""
-    app = create_app()
+    app = get_web_app()
     click.echo(f"Starting web interface at http://{host}:{port}")
     app.run(host=host, port=port, debug=debug)
 

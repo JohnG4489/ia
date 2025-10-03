@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Job Status - AI Remastering{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow border-0">
+            <div class="card-header bg-info text-white">
+                <h3 class="mb-0">
+                    <i class="fas fa-cogs me-2"></i>
+                    Processing Status
+                </h3>
+            </div>
+            
+            <div class="card-body p-4">
+                {% if job %}
+                <div class="job-details mb-4">
+                    <h5>Job Details</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>File:</strong> {{ job.get('filename', 'Unknown') }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Type:</strong> 
+                            <span class="badge bg-{{ 'primary' if job.get('file_type') == 'image' else 'success' }}">
+                                <i class="fas fa-{{ 'image' if job.get('file_type') == 'image' else 'video' }} me-1"></i>
+                                {{ job.get('file_type', 'Unknown').title() }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <strong>Model:</strong> {{ job.get('model', 'Unknown') }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Scale:</strong> {{ job.get('scale_factor', 'Unknown') }}x
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="status-section">
+                    <h5>Current Status</h5>
+                    <div class="status-indicator mb-3">
+                        {% if job.get('status') == 'queued' %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-clock me-2"></i>
+                                <strong>Queued</strong> - Waiting to start processing
+                            </div>
+                        {% elif job.get('status') == 'processing' %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-spinner fa-spin me-2"></i>
+                                <strong>Processing</strong> - Enhancement in progress
+                            </div>
+                            <div class="progress mb-3">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                     role="progressbar" style="width: {{ job.get('progress', 0) }}%">
+                                </div>
+                            </div>
+                        {% elif job.get('status') == 'completed' %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <strong>Completed</strong> - Enhancement finished successfully!
+                            </div>
+                            <div class="d-grid gap-2 mb-3">
+                                <a href="{{ url_for('download_file', job_id=job_id) }}" class="btn btn-success btn-lg">
+                                    <i class="fas fa-download me-2"></i>
+                                    Download Enhanced File
+                                </a>
+                            </div>
+                        {% elif job.get('status') == 'error' %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Error</strong> - Processing failed
+                                {% if job.get('error') %}
+                                <br><small>{{ job.get('error') }}</small>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="actions mt-4">
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-plus me-2"></i>
+                        Process Another File
+                    </a>
+                    <a href="{{ url_for('list_jobs') }}" class="btn btn-outline-secondary ms-2">
+                        <i class="fas fa-list me-2"></i>
+                        View All Jobs
+                    </a>
+                </div>
+                
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Job not found or has expired.
+                </div>
+                <a href="{{ url_for('index') }}" class="btn btn-primary">
+                    <i class="fas fa-home me-2"></i>
+                    Go to Home
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Auto-refresh for active jobs
+    function refreshJobStatus() {
+        const currentStatus = '{{ job.get("status") if job else "" }}';
+        
+        if (currentStatus === 'queued' || currentStatus === 'processing') {
+            fetch(`/api/job/{{ job_id }}/status`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'completed' || data.status === 'error') {
+                        // Reload page to show final status
+                        window.location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.log('Status check failed:', error);
+                });
+        }
+    }
+    
+    // Check status every 3 seconds for active jobs
+    {% if job and job.get('status') in ['queued', 'processing'] %}
+    setInterval(refreshJobStatus, 3000);
+    {% endif %}
+</script>
+{% endblock %}

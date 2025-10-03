@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow border-0">
+            <div class="card-header bg-primary text-white text-center">
+                <h1 class="mb-0">
+                    <i class="fas fa-magic me-2"></i>
+                    AI Photo & Video Remastering
+                </h1>
+                <p class="mb-0 mt-2">Enhance your media with artificial intelligence</p>
+            </div>
+            
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('upload_file') }}" enctype="multipart/form-data">
+                    <div class="upload-area">
+                        <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                        <h4>Drop your files here or click to browse</h4>
+                        <input type="file" 
+                               class="form-control form-control-lg mt-3" 
+                               name="file" 
+                               accept=".jpg,.jpeg,.png,.bmp,.tiff,.webp,.mp4,.avi,.mov,.mkv,.wmv" 
+                               required>
+                        <small class="text-muted mt-2 d-block">
+                            Supported: Images (JPG, PNG, BMP, TIFF, WebP) and Videos (MP4, AVI, MOV, MKV, WMV)
+                        </small>
+                    </div>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="model" class="form-label fw-bold">
+                                <i class="fas fa-brain me-1"></i>AI Model
+                            </label>
+                            <select class="form-select form-select-lg" name="model" id="model">
+                                {% for model_key, model_info in models.items() %}
+                                <option value="{{ model_key }}" {% if model_key == 'esrgan' %}selected{% endif %}>
+                                    {{ model_info.description }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="scale_factor" class="form-label fw-bold">
+                                <i class="fas fa-expand-alt me-1"></i>Scale Factor
+                            </label>
+                            <select class="form-select form-select-lg" name="scale_factor" id="scale_factor">
+                                <option value="2" selected>2x (Recommended)</option>
+                                <option value="4">4x (Higher Quality)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-magic me-2"></i>
+                            Start Enhancement
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

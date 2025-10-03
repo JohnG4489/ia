@@ -20,7 +20,9 @@ completed_jobs = {}
 
 def create_app():
     """Create Flask application."""
-    app = Flask(__name__)
+    # Set template folder relative to project root
+    template_folder = Path(__file__).parent.parent / 'templates'
+    app = Flask(__name__, template_folder=str(template_folder))
     app.config['SECRET_KEY'] = 'ai-remastering-secret-key'
     app.config['UPLOAD_FOLDER'] = str(config.UPLOAD_FOLDER)
     app.config['MAX_CONTENT_LENGTH'] = config.MAX_CONTENT_LENGTH
@@ -77,7 +79,20 @@ def create_app():
     @app.route('/')
     def index():
         """Main page."""
-        return render_template('index.html', models=config.MODELS)
+        try:
+            return render_template('index.html', models=config.MODELS)
+        except Exception as e:
+            # Fallback if template rendering fails
+            return f"""
+            <html>
+            <head><title>AI Remastering</title></head>
+            <body>
+            <h1>AI Photo & Video Remastering</h1>
+            <p>Upload interface will be available once templates are properly configured.</p>
+            <p>Error: {e}</p>
+            </body>
+            </html>
+            """, 500
     
     @app.route('/upload', methods=['POST'])
     def upload_file():
